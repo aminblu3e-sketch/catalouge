@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Export Catalog</title>
+<link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.003.0/Vazirmatn-font-face.css" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family:'Vazirmatn', sans-serif; }
+  .thumb { width:72px; height:72px; border-radius:12px; overflow:hidden; border:1px solid #e5e7eb; cursor:pointer; flex:0 0 auto; }
+  .thumb.is-active { outline:3px solid rgb(15 23 42); }
+  .spec-box { border:1px solid #e5e7eb; border-radius:16px; padding:12px; min-height:64px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border:1px solid #e5e7eb; border-radius:9999px; font-size:11px; line-height:1.2; background:#fff; white-space:nowrap; }
+  .chips-row { display:flex; gap:8px; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .breakword { word-break: break-word; overflow-wrap:anywhere; }
+  .filter-divider { border-left:1px solid #e5e7eb; height:20px; margin:0 8px; }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+<header class="bg-white/90 backdrop-blur sticky top-0 z-40 border-b">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <strong id="brandTitle">کاتالوگ صادراتی</strong>
+    <div class="flex items-center gap-3">
+      <label class="text-sm text-slate-600"><span data-i18n="currency">ارز</span>:
+        <select id="currency" class="border rounded-xl px-2 py-1 ms-1"><option value="IRR">IRR</option><option value="OMR">OMR</option><option value="USD">USD</option><option value="AED">AED</option><option value="RUB">RUB</option></select>
+      </label>
+      <select id="lang" class="border rounded-xl px-2 py-1 text-sm">
+        <option value="fa" selected>FA</option><option value="en">EN</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<section class="filters max-w-7xl mx-auto px-4 mt-6">
+  <div class="rounded-3xl border bg-white p-4 flex flex-wrap items-center gap-3">
+    
+    <label class="text-sm text-slate-600">
+      <span data-i18n="material">جنس</span>
+      <select id="f-material" class="border rounded-xl px-3 py-2 ms-2">
+        <option value="" data-i18n="all">همه</option><option value="EVA">EVA</option><option value="PU">PU</option>
+      </select>
+    </label><div class="filter-divider"></div><label class="text-sm text-slate-600">
+      <span data-i18n="consumer_group">مناسب</span>
+      <select id="f-group" class="border rounded-xl px-3 py-2 ms-2">
+        <option value="" data-i18n="all">همه</option>
+      </select>
+    </label><div class="filter-divider"></div><label class="text-sm text-slate-600">
+      <span data-i18n="type">نوع</span>
+      <select id="f-type" class="border rounded-xl px-3 py-2 ms-2">
+        <option value="" data-i18n="all">همه</option><option value="sandal">sandal</option><option value="slippers">slippers</option>
+      </select>
+    </label>
+    <button id="clearFilters" class="px-3 py-2 border rounded-xl text-sm" data-i18n="clear">حذف فیلترها</button>
+    <div class="ms-auto text-sm text-slate-500"><span data-i18n="count">تعداد</span>: <span id="count">0</span></div>
+  </div>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 mt-6 mb-16">
+  <div id="grid" class="grid gap-5 grid-cols-1 md:grid-cols-2"></div>
+</section>
+
+<script>
+const I18N = {"fa": {"currency": "ارز", "filters": "فیلترها", "material": "جنس", "consumer_group": "مناسب", "type": "نوع", "clear": "حذف فیلترها", "carton_qty": "تعداد در کارتن", "description": "توضیحات", "features": "ویژگی‌ها", "price_by_group": "قیمت بر اساس مناسب", "all": "همه", "count": "تعداد", "men": "Men", "women": "Women", "kids": "Kids", "baby": "Baby", "middle": "Middle", "unisex": "Unisex"}, "en": {"currency": "Currency", "filters": "Filters", "material": "Material", "consumer_group": "Suitable", "type": "Type", "clear": "Clear filters", "carton_qty": "Carton Qty", "description": "Description", "features": "Features", "price_by_group": "Price by group", "all": "All", "count": "Count", "men": "Men", "women": "Women", "kids": "Kids", "baby": "Baby", "middle": "Middle", "unisex": "Unisex"}};
+const CURRENCIES = {"USD": {"symbol": "$", "rate": 1.0}, "AED": {"symbol": "د.إ", "rate": 3.67}, "IRR": {"symbol": "", "rate": 580000.0}, "OMR": {"symbol": "ر.ع.", "rate": 1.0}, "RUB": {"symbol": "₽", "rate": 1.0}};
+const MODELS = [{"id": 1, "sku": "MM", "name_fa": "مریخی", "name_en": "Mars", "category": "Slippers", "material": "EVA", "cartonQty": 16, "description_fa": "رنگبندی الوان (کرم ، طوسی ، مشکی ، سبز )", "description_en": "Colorful (Cream , Gray , Black , Green)", "tags": ["40-45"], "suitable": ["men"], "prices": [{"label": "Men", "price": 1.6}], "basePrice": 1.6, "gallery": [{"label": "", "src": "images/MM.jpg"}]}, {"id": 2, "sku": "CA", "name_fa": "کمرا", "name_en": "Camera", "category": "Slippers", "material": "EVA", "cartonQty": 16, "description_fa": "رنگبندی الوان (هلویی ، سرخابی ، صورتی کمرنگ ، مشکی )", "description_en": "Colorful (Peach , Magenta , Pale Pink , Black)", "tags": ["20-25", "25-30", "31-36", "37-40"], "suitable": ["baby", "kids", "middle", "women"], "prices": [{"label": "Baby", "price": 1.9}, {"label": "Kids", "price": 2.0}, {"label": "Middle", "price": 2.3}, {"label": "Women", "price": 2.5}], "basePrice": 2.5, "gallery": [{"label": "", "src": "images/CA-BLACK.jpg"}, {"label": "", "src": "images/CA-MAGNETA.jpg"}, {"label": "", "src": "images/CA-PALE PINK.jpg"}, {"label": "", "src": "images/CA-PEACH.jpg"}]}, {"id": 3, "sku": "FL", "name_fa": "فلای فلایت", "name_en": "Flight", "category": "Sandal", "material": "PU", "cartonQty": 8, "description_fa": "رنگبندی : مشکی ، قهوه ای ، عنابی ، نیلی", "description_en": "Color : Black , Brown , Maroon , Indigo", "tags": ["41-44"], "suitable": ["men"], "prices": [{"label": "Men", "price": 4.5}], "basePrice": 4.5, "gallery": [{"label": "", "src": "images/FL-BLACK.jpg"}, {"label": "", "src": "images/FL-BROWN.jpg"}, {"label": "", "src": "images/FL-INDIGO.jpg"}, {"label": "", "src": "images/FL-MAROON.jpg"}]}, {"id": 4, "sku": "AL", "name_fa": "الوند", "name_en": "Alvand", "category": "Sandal", "material": "PU", "cartonQty": 12, "description_fa": "رنگبندی : مشکی", "description_en": "Coor : Black", "tags": ["40-45"], "suitable": ["men"], "prices": [{"label": "Men", "price": 3.0}], "basePrice": 3.0, "gallery": [{"label": "", "src": "images/AL-BLACK.jpg"}]}];
+
+function t(key){ return (I18N[document.getElementById('lang').value]||{})[key] || key; }
+
+function toPrice(base, code){
+  const c = CURRENCIES[code] || {symbol:'$', rate:1};
+  const v = base * c.rate;
+  const noDec = (code==='IRR');
+  const loc = (document.getElementById('lang').value==='fa' ? 'fa-IR' : 'en-US');
+  const num = new Intl.NumberFormat(loc, {maximumFractionDigits: noDec?0:2}).format(v);
+  return (code==='IRR') ? num : (c.symbol + num);
+}
+
+function chip(txt){ const s=document.createElement('span'); s.className='chip'; s.textContent=txt; return s; }
+
+function productCard(m){
+  const lang=document.getElementById('lang').value;
+  const cur =document.getElementById('currency').value;
+  const name=(lang==='fa'?(m.name_fa||m.name_en||m.sku):(m.name_en||m.name_fa||m.sku));
+  const desc=(lang==='fa'?(m.description_fa||m.description_en||''):(m.description_en||m.description_fa||''));
+  const gallery=(m.gallery&&m.gallery.length)?m.gallery:[{label:'',src:''}];
+
+  const card=document.createElement('article'); card.className='border rounded-3xl bg-white shadow-sm hover:shadow-md transition overflow-hidden'; card.id='product-'+m.id;
+  const grid=document.createElement('div'); grid.className='grid grid-cols-12 gap-5 p-4'; card.appendChild(grid);
+
+  const left=document.createElement('div'); left.className='col-span-12 md:col-span-7'; grid.appendChild(left);
+  const imgBox=document.createElement('div'); imgBox.className='aspect-[4/3] w-full rounded-2xl overflow-hidden bg-white mb-3 border'; left.appendChild(imgBox);
+  const mainImg=document.createElement('img'); mainImg.src=(gallery[0]&&gallery[0].src)||''; mainImg.alt=name; mainImg.className='w-full h-full object-cover';
+  mainImg.onerror=function(){ this.onerror=null; this.src='https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200&auto=format&fit=crop'; }; imgBox.appendChild(mainImg);
+
+  const pDesc=document.createElement('p'); pDesc.className='mt-2 text-sm leading-7 text-slate-600 breakword truncate whitespace-nowrap overflow-hidden'; pDesc.title=desc; pDesc.textContent=desc; left.appendChild(pDesc);
+
+  const thumbsRow=document.createElement('div'); thumbsRow.className='flex items-center gap-3 mt-2'; left.appendChild(thumbsRow);
+  const thumbsWrap=document.createElement('div'); thumbsWrap.className='chips-row'; thumbsRow.appendChild(thumbsWrap);
+  gallery.forEach((g,idx)=>{ const th=document.createElement('div'); th.className='thumb '+(idx===0?'is-active':''); const im=document.createElement('img'); im.src=g.src; im.alt=g.label||''; im.className='w-full h-full object-cover'; th.appendChild(im); th.addEventListener('click',()=>{ mainImg.src=g.src; Array.from(thumbsWrap.children).forEach(x=>x.classList.remove('is-active')); th.classList.add('is-active'); }); thumbsWrap.appendChild(th); });
+
+  const right=document.createElement('div'); right.className='col-span-12 md:col-span-5 flex flex-col gap-3'; grid.appendChild(right);
+  const head=document.createElement('div'); head.className='flex items-start justify-between'; right.appendChild(head);
+// Left: Name
+const headL=document.createElement('div'); headL.className='min-w-0'; head.appendChild(headL);
+const h3=document.createElement('h3'); h3.className='text-xl font-bold breakword'; h3.textContent=name; headL.appendChild(h3);
+// Right: SKU (opposite side)
+const headR=document.createElement('div'); headR.className='text-sm text-slate-500'; head.appendChild(headR);
+const skuSpan=document.createElement('div'); skuSpan.textContent=(m.sku||''); headR.appendChild(skuSpan);
+
+// Price row under header
+const priceRow=document.createElement('div'); priceRow.className='mt-1 text-2xl font-bold'; right.appendChild(priceRow);
+const arr=(m.prices||[]).map(p=>+p.price).filter(v=>!isNaN(v)&&v>0);
+let minP = arr.length? Math.min(...arr) : (m.basePrice||0);
+let maxP = arr.length? Math.max(...arr) : (m.basePrice||0);
+const price=document.createElement('div');
+if(minP===maxP) price.innerHTML='<span>'+toPrice(minP, cur)+'</span>';
+else price.innerHTML='<span>'+toPrice(minP, cur)+'</span><span class="mx-1">–</span><span>'+toPrice(maxP, cur)+'</span>';
+price.setAttribute('data-role','price-range');
+priceRow.appendChild(price);
+
+// Specs
+
+  const specs=document.createElement('div'); specs.className='grid grid-cols-2 gap-3'; right.appendChild(specs);
+  const box1=document.createElement('div'); box1.className='spec-box'; specs.appendChild(box1);
+  const l1=document.createElement('div'); l1.className='text-xs text-slate-500 mb-1'; l1.textContent=t('material'); box1.appendChild(l1);
+  const v1=document.createElement('div'); v1.className='font-medium breakword'; v1.textContent=m.material||'-'; box1.appendChild(v1);
+  const box2=document.createElement('div'); box2.className='spec-box'; specs.appendChild(box2);
+  const l2=document.createElement('div'); l2.className='text-xs text-slate-500 mb-1'; l2.textContent=t('carton_qty'); box2.appendChild(l2);
+  const v2=document.createElement('div'); v2.className='font-medium whitespace-nowrap'; v2.textContent=(m.cartonQty||'-'); box2.appendChild(v2);
+  const priceBox=document.createElement('div'); priceBox.className='spec-box col-span-2'; specs.appendChild(priceBox);
+  const lp=document.createElement('div'); lp.className='text-xs text-slate-500 mb-1'; lp.textContent=t('price_by_group'); priceBox.appendChild(lp);
+  const pv=document.createElement('div'); pv.className='text-sm'; pv.setAttribute('data-role','price-list'); priceBox.appendChild(pv);
+  const plist=(m.prices||[]).filter(x=>x && x.label);
+  if(plist.length<=1) priceBox.style.display='none';
+  else plist.forEach(it=>{ const row=document.createElement('div'); row.className='flex justify-between text-[12px]'; const left=document.createElement('div'); left.textContent=it.label; const rightP=document.createElement('div'); rightP.textContent=toPrice(+it.price||0, cur); row.appendChild(left); row.appendChild(rightP); pv.appendChild(row); });
+  // Features box (Tags)
+  const box3=document.createElement('div'); box3.className='spec-box col-span-2'; specs.appendChild(box3);
+  const l3=document.createElement('div'); l3.className='text-xs text-slate-500 mb-1'; l3.textContent=t('features'); box3.appendChild(l3);
+  const tagsWrap=document.createElement('div'); tagsWrap.className='flex flex-wrap gap-2'; box3.appendChild(tagsWrap);
+  (m.tags||[]).forEach(s=> tagsWrap.appendChild(chip(s)) );
+
+  // Chips row (Suitable only)
+  const chipsWrap=document.createElement('div'); chipsWrap.className='chips-row mt-2'; right.appendChild(chipsWrap);
+  (m.suitable||[]).forEach(s=> chipsWrap.appendChild(chip(s)));
+
+  return card;
+}
+
+function applyFilters(){
+  const fMat=document.getElementById('f-material').value;
+  const fGroup=(document.getElementById('f-group').value||'').toLowerCase();
+  const fType=(document.getElementById('f-type').value||'').toLowerCase();
+  const list = MODELS.filter(m =>
+    (fMat? m.material===fMat : true) &&
+    (fGroup? ((m.suitable||[]).map(s=>String(s).toLowerCase()).includes(fGroup)) : true) &&
+    (fType? ((String(m.category||'')+' '+(m.tags||[]).join(' ')).toLowerCase().includes(fType)) : true)
+  );
+  const grid=document.getElementById('grid'); const count=document.getElementById('count');
+  grid.innerHTML=''; list.forEach(m=> grid.appendChild(productCard(m))); count.textContent=list.length;
+}
+
+function buildGroups(){
+  const set=new Set(); MODELS.forEach(m=>{ (m.suitable||[]).forEach(x=> set.add(String(x).toLowerCase())); });
+  window.GROUPS = Array.from(set);
+}
+
+
+function refreshI18N(){
+  const lang=document.getElementById('lang').value;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    if(I18N[lang] && I18N[lang][key]){
+      el.textContent=I18N[lang][key];
+    }
+  });
+}
+
+function renderGroupOptions(){
+  const sel=document.getElementById('f-group'); if(!sel) return;
+  const lang=document.getElementById('lang').value;
+  const mapFA={men:"مردانه", women:"زنانه", unisex:"یونیسکس", kids:"بچه‌گانه", baby:"نوزاد", middle:"نوجوان"};
+  const mapEN={men:"Men", women:"Women", unisex:"Unisex", kids:"Kids", baby:"Baby", middle:"Middle"};
+  sel.innerHTML = '<option value="" data-i18n="all">'+(I18N[lang]['all']||'All')+'</option>';
+  (window.GROUPS||[]).forEach(v=>{ const o=document.createElement('option'); const k=String(v).toLowerCase(); o.value=k; o.textContent=(lang==='fa'?(mapFA[k]||v):(mapEN[k]||v)); sel.appendChild(o); });
+}
+
+document.getElementById('clearFilters').addEventListener('click', ()=>{ document.getElementById('f-material').value=''; document.getElementById('f-group').value=''; document.getElementById('f-type').value=''; applyFilters(); });
+document.getElementById('f-material').addEventListener('change', applyFilters);
+document.getElementById('f-group').addEventListener('change', applyFilters);
+document.getElementById('f-type').addEventListener('change', applyFilters);
+document.getElementById('currency').addEventListener('change', ()=>{ applyFilters(); });
+document.getElementById('lang').addEventListener('change', ()=>{ document.documentElement.setAttribute('dir',(document.getElementById('lang').value==='fa'?'rtl':'ltr')); document.getElementById('brandTitle').textContent=(document.getElementById('lang').value==='fa'?'کاتالوگ صادراتی':'Export Catalog'); renderGroupOptions(); refreshI18N();
+  applyFilters(); });
+
+document.getElementById('currency').value = "USD";
+buildGroups(); renderGroupOptions(); refreshI18N(); applyFilters();
+</script>
+</body></html>
